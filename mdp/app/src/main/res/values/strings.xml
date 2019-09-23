@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Group 6 MDP</string>
+
+    <string-array name="directions_array">
+        <item>up</item>
+        <item>down</item>
+        <item>left</item>
+        <item>right</item>
+    </string-array>
+</resources>

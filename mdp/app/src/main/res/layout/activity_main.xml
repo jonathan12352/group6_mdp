@@ -1,0 +1,445 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    tools:context="com.group6.mdp.MainActivity">
+
+    <include
+        android:id="@+id/mainmenutoolbar"
+        layout="@layout/toolbar" />
+
+    <TextView
+        android:id="@+id/bluetoothstatus"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/basic_ui_border"
+        android:gravity="center"
+        android:text="Bluetooth Status: Disconnected"
+        android:textAlignment="center"
+        android:textColor="@color/black"
+        app:layout_constraintBottom_toTopOf="@+id/mapdisplaylayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/mapdisplaylayout"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/mapdisplaylayout"
+        android:layout_width="match_parent"
+        android:layout_height="450dp"
+        android:layout_margin="5dp"
+        app:layout_constraintBottom_toTopOf="@id/configurationslayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bluetoothstatus">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.6">
+
+            <view
+                android:id="@+id/mapView"
+                class="com.group6.mdp.GridMap"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="440dp"
+            android:layout_weight="0.4"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/messagesentword"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_margin="2dp"
+                android:layout_weight="0.05"
+                android:background="@drawable/basic_ui_border"
+                android:text="Message Sent"
+                android:textAlignment="center"
+                android:textColor="@color/black" />
+
+            <EditText
+                android:id="@+id/messagesent"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_below="@+id/messagesentword"
+                android:layout_margin="2dp"
+                android:layout_weight="0.3"
+                android:background="@drawable/basic_ui_border"
+                android:textColor="@color/black" />
+
+            <TextView
+                android:id="@+id/messagereceivedword"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_below="@+id/messagesent"
+                android:layout_alignParentRight="true"
+                android:layout_margin="2dp"
+                android:layout_weight="0.05"
+                android:background="@drawable/basic_ui_border"
+                android:text="Message Received"
+                android:textAlignment="center"
+                android:textColor="@color/black" />
+
+            <TextView
+                android:id="@+id/messagereceived"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_below="@+id/messagereceivedword"
+                android:layout_alignParentRight="true"
+                android:layout_margin="2dp"
+                android:layout_weight="0.3"
+                android:background="@drawable/basic_ui_border"
+                android:scrollbars="vertical"
+                android:textAlignment="center"
+                android:textColor="@color/black" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/timedisplaylayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        app:layout_constraintBottom_toTopOf="@+id/configurationslayout"
+        app:layout_constraintStart_toStartOf="@+id/mapdisplaylayout"
+        app:layout_constraintTop_toBottomOf="@+id/mapdisplaylayout">
+
+        <TextView
+            android:id="@+id/exploretimeword"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_margin="2.5dp"
+            android:text="Exploration Time:  "
+            android:textColor="@color/black" />
+
+        <TextView
+            android:id="@+id/exploretime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="2.5dp"
+            android:layout_toRightOf="@+id/exploretimeword"
+            android:text="00:00:00"
+            android:textColor="@color/black" />
+
+        <Button
+            android:id="@+id/startexplorebutton"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:layout_toRightOf="@+id/exploretime"
+            android:text="Start Exploration"
+            android:textAlignment="center"
+            android:textSize="10dp" />
+
+        <Button
+            android:id="@+id/explorereset"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:layout_alignParentRight="true"
+            android:layout_toRightOf="@+id/startexplorebutton"
+            android:text="Reset"
+            android:textAlignment="center"
+            android:textSize="10dp" />
+
+        <TextView
+            android:id="@+id/fastestpathword"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/exploretimeword"
+            android:layout_alignParentLeft="true"
+            android:layout_margin="2.5dp"
+            android:text="Fastest Path Time:"
+            android:textColor="@color/black" />
+
+        <TextView
+            android:id="@+id/fastestpath"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/exploretime"
+            android:layout_margin="2.5dp"
+            android:layout_toRightOf="@+id/fastestpathword"
+            android:text="00:00:00"
+            android:textColor="@color/black" />
+
+        <Button
+            android:id="@+id/startfastestpathbutton"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:layout_below="@+id/startexplorebutton"
+            android:layout_toRightOf="@+id/fastestpath"
+            android:text="Start Fastest Path"
+            android:textAlignment="center"
+            android:textSize="10dp" />
+
+        <Button
+            android:id="@+id/fastestpathreset"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:layout_below="@+id/explorereset"
+            android:layout_alignParentRight="true"
+            android:layout_toRightOf="@+id/startfastestpathbutton"
+            android:text="Reset"
+            android:textAlignment="center"
+            android:textSize="10dp" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/configurationslayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/timedisplaylayout">
+
+        <!-- Start of Items on the LEFT Side -->
+
+        <TextView
+            android:textSize="12sp"
+            android:id="@+id/robotstatusword"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_margin="2dp"
+            android:background="@drawable/basic_ui_border"
+            android:text="ROBOT STATUS"
+            android:textAlignment="center"
+            android:textColor="@color/black" />
+
+        <TextView
+            android:textSize="12sp"
+            android:id="@+id/robotstatus"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/robotstatusword"
+            android:layout_alignParentLeft="true"
+            android:layout_margin="2dp"
+            android:background="@drawable/basic_ui_border"
+            android:text="STOPPED"
+            android:textAlignment="center"
+            android:textColor="@color/black" />
+
+        <TextView
+            android:id="@+id/x_word"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/robotstatus"
+            android:layout_margin="2dp"
+            android:background="@drawable/basic_ui_border"
+            android:padding="5dp"
+            android:text="X"
+            android:textAlignment="center"
+            android:textColor="@color/black" />
+
+        <TextView
+            android:id="@+id/x_pos"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/x_word"
+            android:layout_alignParentLeft="true"
+            android:layout_margin="2dp"
+            android:background="@drawable/basic_ui_border"
+            android:textAlignment="center"
+            android:textColor="@color/black" />
+
+        <TextView
+            android:id="@+id/y_word"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/robotstatus"
+            android:layout_margin="2dp"
+            android:layout_toRightOf="@+id/x_word"
+            android:background="@drawable/basic_ui_border"
+            android:padding="5dp"
+            android:text="Y"
+            android:textAlignment="center"
+            android:textColor="@color/black" />
+
+        <TextView
+            android:id="@+id/y_pos"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/y_word"
+            android:layout_margin="2dp"
+            android:layout_toRightOf="@+id/x_pos"
+            android:background="@drawable/basic_ui_border"
+            android:textAlignment="center"
+            android:textColor="@color/black" />
+
+        <Button
+            android:id="@+id/setcoordbutton"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/x_pos"
+            android:layout_alignParentLeft="true"
+            android:text="SET COORDINATE"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="8sp" />
+
+        <TextView
+            android:id="@+id/direction"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/setcoordbutton"
+            android:layout_alignParentLeft="true"
+            android:layout_margin="2dp"
+            android:background="@drawable/basic_ui_border"
+            android:padding="5dp"
+            android:text="DIRECTION: "
+            android:textColor="@color/black"
+            android:textSize="10sp" />
+
+        <Button
+            android:id="@+id/setrobotdirection"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/direction"
+            android:layout_alignParentLeft="true"
+            android:text="Set Robot Direction"
+            android:textSize="8sp" />
+
+        <ToggleButton
+            android:id="@+id/setrobotstartpoint"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/setrobotdirection"
+            android:layout_alignParentLeft="true"
+            android:textOff="Set Robot Start Point"
+            android:textOn="Cancel Set Robot Start Point"
+            android:textSize="8sp" />
+
+        <ToggleButton
+            android:id="@+id/modeToggleButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/robotstatus"
+            android:checked="true"
+            android:onClick="toggleAutoMode"
+            android:textOff="MANUAL"
+            android:textOn="AUTO"
+            android:textSize="12sp" />
+
+        <!-- End of Items On the LEFT Side -->
+
+
+        <!-- Start of Items on the RIGHT Side -->
+
+        <Button
+            android:id="@+id/configbutton"
+            android:layout_width="170dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_margin="2dp"
+            android:background="@color/grey"
+            android:padding="5dp"
+            android:text="SET CONFIGURATIONS"
+            android:textSize="12dp" />
+
+        <Button
+            android:id="@+id/setting2button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/configbutton"
+            android:layout_alignParentRight="true"
+            android:text="F2"
+            android:textAlignment="center" />
+
+        <Button
+            android:id="@+id/setting1button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/configbutton"
+            android:layout_toLeftOf="@+id/setting2button"
+            android:text="F2"
+            android:textAlignment="center" />
+
+        <Button
+            android:id="@+id/resetgridmap"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/setting2button"
+            android:layout_alignParentRight="true"
+            android:text="RESET GRID MAP"
+            android:textSize="12dp" />
+
+        <Button
+            android:id="@+id/sendmessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/resetgridmap"
+            android:layout_alignParentRight="true"
+            android:onClick="sendMessageFromView"
+            android:text="SEND MESSAGE"
+            android:textSize="12dp" />
+
+        <!-- End of Items on the RIGHT Side -->
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/movecontrollayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageButton
+            android:id="@+id/upbutton"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_centerHorizontal="true"
+            android:layout_margin="2dp"
+            android:background="@drawable/basic_ui_border"
+            android:onClick="moveRobot"
+            android:src="@drawable/up_button" />
+
+        <ImageButton
+            android:id="@+id/downbutton"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_below="@id/leftbutton"
+            android:layout_centerHorizontal="true"
+            android:layout_margin="2dp"
+            android:background="@drawable/basic_ui_border"
+            android:onClick="moveRobot"
+            android:src="@drawable/down_button" />
+
+        <ImageButton
+            android:id="@+id/leftbutton"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_below="@+id/upbutton"
+            android:layout_centerHorizontal="true"
+            android:layout_margin="2dp"
+            android:layout_toLeftOf="@+id/upbutton"
+            android:background="@drawable/basic_ui_border"
+            android:onClick="moveRobot"
+            android:src="@drawable/left_button" />
+
+        <ImageButton
+            android:id="@+id/rightbutton"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_below="@+id/upbutton"
+            android:layout_centerHorizontal="true"
+            android:layout_margin="2dp"
+            android:layout_toRightOf="@+id/upbutton"
+            android:background="@drawable/basic_ui_border"
+            android:onClick="moveRobot"
+            android:src="@drawable/right_button" />
+
+    </RelativeLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".BluetoothHandler">
+
+    <include android:id="@+id/bluetoothtoolbar"
+        layout="@layout/toolbar"/>
+
+    <Button
+        android:onClick="toggleDeviceScan"
+        android:id="@+id/searchButton"
+        android:layout_width="150dp"
+        android:layout_height="50dp"
+        android:text="SEARCH"
+        android:drawableLeft="@drawable/baseline_refresh_black_18dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bluetoothtoolbar" />
+
+    <TextView
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:textSize="20dp"
+        android:text="Bluetooth Configurations"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/searchButton"
+        app:layout_constraintTop_toBottomOf="@+id/bluetoothtoolbar"></TextView>
+
+    <Switch
+        android:textColor="@color/white"
+        android:id="@+id/bluetoothSwitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="OFF"
+        android:layout_margin="10dp"
+        app:layout_constraintTop_toTopOf="@id/bluetoothtoolbar"
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <TextView
+        android:id="@+id/pairedDevicesTitleTextView"
+        android:layout_width="match_parent"
+        android:layout_height="25dp"
+        android:layout_margin="10dp"
+        android:background="#000000"
+        android:text="No Paired Devices"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/searchButton" />
+
+    <ListView
+        android:layout_height="0dp"
+        android:layout_margin="5dp"
+        android:id="@+id/pairedDevicesListView"
+        android:layout_width="match_parent"
+        android:listSelector="#bdb9b9"
+        android:background="@color/white"
+        android:gravity="bottom"
+        android:scrollbars="vertical"
+        android:text=""
+        android:textColor="#000000"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/foundDevicesTitleTextView"
+        app:layout_constraintTop_toBottomOf="@+id/pairedDevicesTitleTextView" />
+
+    <TextView
+        android:layout_margin="10dp"
+        android:id="@+id/foundDevicesTitleTextView"
+        android:layout_width="match_parent"
+        android:layout_height="25dp"
+        android:listSelector="#bdb9b9"
+        android:background="#000000"
+        android:text="No device found"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf = "@+id/foundDevicesListView"
+        app:layout_constraintTop_toBottomOf="@+id/pairedDevicesListView" />
+
+    <ListView
+        android:layout_height="0dp"
+        android:layout_margin="5dp"
+        android:id="@+id/foundDevicesListView"
+        android:layout_width="match_parent"
+        android:background="@color/white"
+        android:gravity="bottom"
+        android:scrollbars="vertical"
+        android:textColor="#000000"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toTopOf="@id/connectButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/foundDevicesTitleTextView" />
+
+    <Button
+        android:id="@+id/connectButton"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:text="CONNECT TO DEVICE"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
