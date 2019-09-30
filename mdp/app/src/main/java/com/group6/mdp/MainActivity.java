@@ -14,6 +14,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -39,6 +40,8 @@ import java.util.UUID;
 public class MainActivity extends AppCompatActivity {
 
     final static String TAG = "MainActivity";
+
+    Intent intent;
 
     private static SharedPreferences sharedPreferences;
     private static SharedPreferences.Editor editor;
@@ -241,8 +244,15 @@ public class MainActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.bluetoothMenuItem:
                 Utils.showToast(getApplicationContext(),"Showing Bluetooth Configuration Activity");
-                Intent intent = new Intent(MainActivity.this, BluetoothHandler.class);
+                intent = new Intent(MainActivity.this, BluetoothHandler.class);
                 startActivityForResult(intent, 1);
+                break;
+            case R.id.messageMenuItem:
+                Utils.showToast(MainActivity.this,"Message Box selected");
+                intent = new Intent(MainActivity.this, MessageBoxActivity.class);
+                editor.putString("receivedText", messageReceivedView.getText().toString());
+                editor.putString("sentText",  messageSentView.getText().toString());
+                startActivity(intent);
                 break;
         }
 
