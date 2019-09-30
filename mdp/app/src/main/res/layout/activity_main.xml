@@ -99,7 +99,6 @@
                 android:layout_weight="0.3"
                 android:background="@drawable/basic_ui_border"
                 android:scrollbars="vertical"
-                android:textAlignment="center"
                 android:textColor="@color/black" />
         </LinearLayout>
     </LinearLayout>
@@ -389,6 +388,14 @@
             android:textOff="SET OBSTACLE"
             android:textOn="CANCEL SET OBSTACLE"
             android:textSize="12dp" />
+
+        <Button
+            android:text="Get Voice Command"
+            android:layout_alignParentRight="true"
+            android:layout_below="@+id/setobstacle"
+            android:layout_width="wrap_content"
+            android:id="@+id/getvoicebutton"
+            android:layout_height="wrap_content"/>
 
         <!-- End of Items on the RIGHT Side -->
 

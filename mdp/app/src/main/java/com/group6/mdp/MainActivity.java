@@ -15,6 +15,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.speech.RecognizerIntent;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -23,6 +24,7 @@ import android.content.Intent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 import android.text.method.ScrollingMovementMethod;
@@ -33,8 +35,10 @@ import org.json.JSONObject;
 
 import java.math.BigInteger;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
@@ -64,6 +68,11 @@ public class MainActivity extends AppCompatActivity {
 
     Button f1Button;
     Button f2Button;
+
+    ImageButton turnLeftButton;
+    ImageButton turnRightButton;
+    ImageButton moveForwardButton;
+    ImageButton moveBackButton;
 
     Button setRobotDirectionButton;
     Button setConfigButton;
@@ -111,6 +120,11 @@ public class MainActivity extends AppCompatActivity {
         editor.putString("direction","None");
         editor.putString("connStatus", "Disconnected");
         editor.commit();
+
+        turnLeftButton = findViewById(R.id.leftbutton);
+        turnRightButton = findViewById(R.id.rightbutton);
+        moveForwardButton = findViewById(R.id.upbutton);
+        moveBackButton = findViewById(R.id.downbutton);
 
         messageSentView = findViewById(R.id.messagesent);
         messageReceivedView = findViewById(R.id.messagereceived);
@@ -228,6 +242,16 @@ public class MainActivity extends AppCompatActivity {
 
         setRobotModeBehavior();
 
+        ((Button)findViewById(R.id.getvoicebutton)).setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.ENGLISH);
+                startActivityForResult(intent, 10);
+            }
+        });
+
         messageRefreshTimerHandler.post(refreshMessageSentReceived);
     }
 
@@ -336,11 +360,46 @@ public class MainActivity extends AppCompatActivity {
 
         switch (requestCode){
             case 1:
-                if(resultCode == Activity.RESULT_OK){
+                if(resultCode == Activity.RESULT_OK) {
                     mBTDevice = (BluetoothDevice) data.getExtras().getParcelable("mBTDevice");
                     myUUID = (UUID) data.getSerializableExtra("myUUID");
                 }
+                break;
+            case 10:
+                if(resultCode == Activity.RESULT_OK) {
+                    if(processVoiceCommand(data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS))){
+                        Log.i(TAG, "Voice command was sent successfully");
+                    }
+                }
+                break;
         }
+    }
+
+    private boolean processVoiceCommand(ArrayList<String> results){
+        for (String str : results) {
+
+            Log.i(TAG, "processVoiceCommand string: " + str);
+
+            if (str.equals("move forward")) {
+                moveRobot(moveForwardButton);
+                return true;
+            }
+            else if(str.equals("move back")){
+                moveRobot(moveBackButton);
+                return true;
+            }
+            else if(str.equals("turn left")){
+                moveRobot(turnLeftButton);
+                return true;
+            }
+            else if(str.equals("turn right")) {
+                moveRobot(turnRightButton);
+                return true;
+            }
+        }
+
+        Log.d(TAG, "processVoiceCommand Error: Error recognising voice command");
+        return false;
     }
 
     public static void sendMessage(String message){
