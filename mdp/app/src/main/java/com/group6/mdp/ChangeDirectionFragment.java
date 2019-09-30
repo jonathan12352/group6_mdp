@@ -9,6 +9,7 @@ import android.app.DialogFragment;
 
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -95,7 +96,9 @@ public class ChangeDirectionFragment extends DialogFragment {
         directionSpinner.setAdapter(adapter);
 
         if(sharedPreferences.contains("direction")){
-            int index = adapter.getPosition(sharedPreferences.getString("direction", ""));
+            String direction = sharedPreferences.getString("direction", "");
+            int index = adapter.getPosition(direction);
+            Log.i(TAG, String.format("Direction Index: %d, Direction: %s", 0, direction));
             directionSpinner.setSelection(index);
         }
 
