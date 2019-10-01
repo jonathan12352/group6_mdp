@@ -224,7 +224,7 @@
             android:layout_alignParentLeft="true"
             android:layout_margin="2dp"
             android:background="@drawable/basic_ui_border"
-            android:text="STOPPED"
+            android:text="NA"
             android:textAlignment="center"
             android:textColor="@color/black" />
 
@@ -241,6 +241,7 @@
             android:textColor="@color/black" />
 
         <TextView
+            android:text="0"
             android:id="@+id/x_pos"
             android:layout_width="60dp"
             android:layout_height="wrap_content"
@@ -265,6 +266,7 @@
             android:textColor="@color/black" />
 
         <TextView
+            android:text="0"
             android:id="@+id/y_pos"
             android:layout_width="60dp"
             android:layout_height="wrap_content"
@@ -329,7 +331,9 @@
             android:textOff="MANUAL"
             android:textOn="AUTO"
             android:textSize="12sp" />
+
         <Button
+            android:textSize="12dp"
             android:onClick="manualUpdateMap"
             android:text="UPDATE MAP"
             android:layout_width="wrap_content"
@@ -390,6 +394,7 @@
             android:textSize="12dp" />
 
         <Button
+            android:textSize="12dp"
             android:text="Get Voice Command"
             android:layout_alignParentRight="true"
             android:layout_below="@+id/setobstacle"

@@ -32,7 +32,6 @@
 
             <item
                 android:id="@+id/saveMapMenuItem"
-                android:icon="@drawable/ic_message"
                 android:title="Save Map"
                 app:showAsAction="never" />
 
