@@ -134,7 +134,6 @@ public class GridMap extends View {
 
         this.drawIndividualCell(canvas);
         this.drawGridNumber(canvas);
-        //this.drawNumberBlockText(canvas);
 
         if (this.getCanDrawRobot())
             this.drawRobot(canvas, curCoord);
@@ -238,7 +237,7 @@ public class GridMap extends View {
         startCoord[1] = row;
 
         if (this.getStartCoordStatus()){
-            this.setCurCoord(col, row, "up");
+            this.setCurCoord(col, row, "right");
         }
         printLog("Exiting setStartCoord");
     }
@@ -1096,8 +1095,8 @@ public class GridMap extends View {
         editor.putString("direction", "None");
         editor.commit();
 
-        if (modeToggleBtn.isChecked())
-            modeToggleBtn.toggle();
+        //if (modeToggleBtn.isChecked())
+            //modeToggleBtn.toggle();
 
         receivedJsonObject = null;
         backupMapInformation = null;

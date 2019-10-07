@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -58,10 +59,18 @@ public class MainActivity extends AppCompatActivity {
     TextView robot_xpos;
     TextView robot_ypos;
 
+    TextView exploreTime;
+    TextView fastestPathTime;
+
     ToggleButton modeToggleButton;
     ToggleButton setRobotStartPointToggleButton;
     ToggleButton setWaypointToggleButton;
     ToggleButton setObstacleToggleButton;
+    ToggleButton startExploreButton;
+    ToggleButton startFastestPathButton;
+
+    Button explorationResetButton;
+    Button fastestPathResetButton;
 
     Button f1Button;
     Button f2Button;
@@ -81,9 +90,14 @@ public class MainActivity extends AppCompatActivity {
 
     boolean autoUpdate = true;
 
+    boolean manuallyUpdateMap = false;
+
     static BluetoothConnectionHandler BTConnectHandler;
 
     Handler messageRefreshTimerHandler = new Handler();
+
+    public static long fastestTime = 0;
+    public static long explorationTime = 0;
 
     Runnable refreshMessageSentReceived = new Runnable(){
         @Override
@@ -91,6 +105,32 @@ public class MainActivity extends AppCompatActivity {
             refreshMessage();
             messageRefreshTimerHandler.postDelayed(refreshMessageSentReceived, 1000);
         }};
+
+    Runnable fastestPathTimer = new Runnable(){
+        @Override
+        public void run() {
+            long millis = System.currentTimeMillis() - fastestTime;
+            int seconds = (int) (millis / 1000);
+            int minutes = seconds / 60;
+            seconds = seconds % 60;
+
+            fastestPathTime.setText(String.format("%02d:%02d", minutes, seconds));
+        }
+    };
+
+    Runnable explorationTimer = new Runnable(){
+        @Override
+        public void run() {
+            long millis = System.currentTimeMillis() - explorationTime;
+            int seconds = (int) (millis / 1000);
+            int minutes = seconds / 60;
+            seconds = seconds % 60;
+
+            exploreTime.setText(String.format("%02d:%02d", minutes, seconds));
+
+            messageRefreshTimerHandler.postDelayed(this, 500);
+        }
+    };
 
     public void refreshMessage() {
         messageReceivedView.setText(sharedPreferences.getString("receivedText", ""));
@@ -116,6 +156,9 @@ public class MainActivity extends AppCompatActivity {
         editor.putString("connStatus", "Disconnected");
         editor.commit();
 
+        exploreTime = findViewById(R.id.exploretime);
+        fastestPathTime = findViewById(R.id.fastestpath);
+
         turnLeftButton = findViewById(R.id.leftbutton);
         turnRightButton = findViewById(R.id.rightbutton);
         moveForwardButton = findViewById(R.id.upbutton);
@@ -126,6 +169,7 @@ public class MainActivity extends AppCompatActivity {
         btConnectStatus = findViewById(R.id.bluetoothstatus);
 
         messageReceivedView.setMovementMethod(new ScrollingMovementMethod());
+        messageSentView.setMovementMethod(new ScrollingMovementMethod());
 
         robotDirection = findViewById(R.id.direction);
         robotstatus = findViewById(R.id.robotstatus);
@@ -229,7 +273,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        ((Button)findViewById(R.id.resetgridmap)).setOnClickListener(new View.OnClickListener(){
+        (findViewById(R.id.resetgridmap)).setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
                 Utils.showToast(MainActivity.this, "Resetting The GridMap...");
@@ -239,25 +283,81 @@ public class MainActivity extends AppCompatActivity {
 
         setRobotModeBehavior();
 
-        ((Button)findViewById(R.id.getvoicebutton)).setOnClickListener(new View.OnClickListener(){
+        (findViewById(R.id.getvoicebutton)).setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
                 Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.ENGLISH);
-                if(map.getAutoUpdate())
+                if(!map.getAutoUpdate())
                     startActivityForResult(intent, 10);
                 else
                     Log.e(TAG, "Voice Error: Please Change To Manual Mode");
             }
         });
 
-        ((Button)findViewById(R.id.startexplorebutton)).setOnClickListener(new View.OnClickListener(){
+        (modeToggleButton).setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
-                if(BTConnectHandler.bluetoothConnectionStatus) {
-                    sendMessage("XEXPLORE");
+                setRobotModeBehavior();
+            }
+        });
+
+        startExploreButton = findViewById(R.id.startexplorebutton);
+        startFastestPathButton = findViewById(R.id.startfastestpathbutton);
+
+        startExploreButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                if(startExploreButton.isChecked()){
+                    sendMessage("XEXPLORE|");
+                    explorationTime = System.currentTimeMillis();
+                    messageRefreshTimerHandler.postDelayed(explorationTimer, 0);
                 }
+                else{
+                    messageRefreshTimerHandler.removeCallbacks(explorationTimer);
+                }
+            }
+        });
+
+        startFastestPathButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                if(startFastestPathButton.isChecked()){
+                    sendMessage("XFASTEST|");
+                    fastestTime = System.currentTimeMillis();
+                    messageRefreshTimerHandler.postDelayed(fastestPathTimer, 0);
+                }
+                else{
+                    messageRefreshTimerHandler.removeCallbacks(fastestPathTimer);
+                }
+            }
+        });
+
+        explorationResetButton = findViewById(R.id.explorereset);
+        fastestPathResetButton = findViewById(R.id.fastestpathreset);
+
+        explorationResetButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                Utils.showToast(MainActivity.this, "Reseting exploration time...");
+                exploreTime.setText("00:00:00");
+                if(startExploreButton.isChecked())
+                    startExploreButton.toggle();
+                messageRefreshTimerHandler.removeCallbacks(explorationTimer);
+            }
+        });
+
+        //WAYPOINT|X|Y
+
+        fastestPathResetButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                Utils.showToast(MainActivity.this,"Reseting fastest time...");
+                fastestPathTime.setText("00:00:00");
+                if (startFastestPathButton.isChecked())
+                    startFastestPathButton.toggle();
+                messageRefreshTimerHandler.removeCallbacks(fastestPathTimer);
             }
         });
 
@@ -300,10 +400,19 @@ public class MainActivity extends AppCompatActivity {
             Log.i(TAG, "messageReceiver() Message Received: " + message);
 
             try {
-                if (message.length() > 7 && message.substring(2,6).equals("grid")) {
+                //if (message.length() > 7 && message.substring(2,6).equals("grid")) {
+                if(message.contains("EXPLORE")){
                     String resultString = "";
-                    String amdString = message.substring(11,message.length()-2);
+                    String[] getInformationString = message.split(Pattern.quote("|"));
+
+                    for(String s : getInformationString){
+                        Log.i(TAG, "getInformationString: " + s);
+                    }
+
+                    //String amdString = message.substring(11,message.length()-2);
+                    String amdString = getInformationString[2];
                     Log.i(TAG, "amdString Received: " + amdString);
+
                     BigInteger hexBigIntegerExplored = new BigInteger(amdString, 16);
                     String exploredString = hexBigIntegerExplored.toString(2);
 
@@ -326,9 +435,12 @@ public class MainActivity extends AppCompatActivity {
                     resultString = hexBigIntegerExplored.toString(16);
 
                     JSONObject amdObject = new JSONObject();
-                    amdObject.put("explored", "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-                    amdObject.put("length", amdString.length()*4);
-                    amdObject.put("obstacle", resultString);
+                    //amdObject.put("explored", "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+                    /*amdObject.put("length", amdString.length()*4);
+                    amdObject.put("obstacle", resultString);*/
+                    amdObject.put("explored", getInformationString[1]);
+                    amdObject.put("length",  getInformationString[2].length());
+                    amdObject.put("obstacle", getInformationString[2]);
                     JSONArray amdArray = new JSONArray();
                     amdArray.put(amdObject);
                     JSONObject amdMessage = new JSONObject();
@@ -344,16 +456,20 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            if (map.getAutoUpdate()) {
+
                 try {
                     Log.d(TAG, "receivedMessage updateMapInformation: " + message);
+
                     map.setReceivedJsonObject(new JSONObject(message));
-                    map.updateMapInformation();
+
+                    if (map.getAutoUpdate())
+                        map.updateMapInformation();
+
                     Log.i(TAG, "messageReceiver: message decode successful");
                 } catch (JSONException e) {
                     Log.i(TAG, "messageReceiver: message decode unsuccessful: " + e.getMessage());
                 }
-            }
+
             InitializeSharedPreferences();
             String receivedText = String.format("%s\n%s", sharedPreferences.getString("receivedText", ""), message);
             editor.putString("receivedText", receivedText);
@@ -386,19 +502,19 @@ public class MainActivity extends AppCompatActivity {
 
             Log.i(TAG, "processVoiceCommand string: " + str);
 
-            if (str.equals("move forward") || str.equals("forward")) {
+            if (str.contains("forward")) {
                 moveRobot(moveForwardButton);
                 return true;
             }
-            else if(str.equals("move back") || str.equals("back")){
+            else if(str.contains("back")){
                 moveRobot(moveBackButton);
                 return true;
             }
-            else if(str.equals("turn left") || str.equals("left")){
+            else if(str.contains("left")){
                 moveRobot(turnLeftButton);
                 return true;
             }
-            else if(str.equals("turn right") || str.equals("right")) {
+            else if(str.contains("right")) {
                 moveRobot(turnRightButton);
                 return true;
             }
@@ -412,10 +528,11 @@ public class MainActivity extends AppCompatActivity {
 
         InitializeSharedPreferences();
 
-        BluetoothConnectionHandler.write(message.getBytes());
-
-        editor.putString("sentText", messageSentView.getText() + "\n " + message);
-        editor.commit();
+        if(BluetoothConnectionHandler.bluetoothConnectionStatus){
+            BluetoothConnectionHandler.write(message.getBytes());
+            editor.putString("sentText", messageSentView.getText() + "\n " + message);
+            editor.commit();
+        }
     }
 
     public static void receiveMessage(String message) {
@@ -433,16 +550,16 @@ public class MainActivity extends AppCompatActivity {
     public static void sendMessage(String name, int x, int y) throws JSONException {
         InitializeSharedPreferences();
 
-        JSONObject jsonObject = new JSONObject();
+        //JSONObject jsonObject = new JSONObject();
         String message;
 
         switch(name) {
             case "starting":
             case "waypoint":
-                jsonObject.put(name, name);
-                jsonObject.put("x", x);
-                jsonObject.put("y", y);
-                message = String.format("{0} ({1},{2})", name, x, y);
+                //jsonObject.put(name, name);
+                //jsonObject.put("x", x);
+                //jsonObject.put("y", y);
+                message = String.format("%s (%d, %d)", name, x, y);
                 break;
             default:
                 message = "Unexpected default for sendMessage: " + name;
@@ -453,7 +570,7 @@ public class MainActivity extends AppCompatActivity {
         editor.commit();
 
         if (BTConnectHandler.bluetoothConnectionStatus) {
-            sendMessage("A" + jsonObject);
+            sendMessage("X" + String.format("%s|%d|%d",name.toUpperCase(),x,y));
         }
     }
 
@@ -515,7 +632,7 @@ public class MainActivity extends AppCompatActivity {
                     return;
             }
 
-            if(map.getValidPosition() || Arrays.asList("AD", "AA").contains(message)){
+            if(map.getValidPosition() || Arrays.asList("AD1", "AA1").contains(message)){
                 Log.i(TAG, "moveRobot sending message: " + message);
                 sendMessage(message);
             }
@@ -593,8 +710,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void manualUpdateMap(View view){
-        if(!map.getAutoUpdate() && map!=null)
-            map.invalidate();
+        if(!modeToggleButton.isChecked() && map!=null){
+            sendMessage("sendArena");
+
+            try{
+                map.updateMapInformation();
+            }
+            catch(JSONException e){
+                Log.e(TAG, "manualUpdateMap Error: " + e.getMessage());
+            }
+        }
         else
             Utils.showToast(MainActivity.this, "This Button Only Works in Manual Update Mode.");
     }

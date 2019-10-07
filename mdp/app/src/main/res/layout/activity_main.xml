@@ -73,6 +73,7 @@
                 android:layout_below="@+id/messagesentword"
                 android:layout_margin="2dp"
                 android:layout_weight="0.3"
+                android:scrollbars="vertical"
                 android:background="@drawable/basic_ui_border"
                 android:textColor="@color/black" />
 
@@ -130,7 +131,7 @@
             android:text="00:00:00"
             android:textColor="@color/black" />
 
-        <Button
+        <ToggleButton
             android:id="@+id/startexplorebutton"
             android:layout_width="wrap_content"
             android:layout_height="30dp"
@@ -169,7 +170,7 @@
             android:text="00:00:00"
             android:textColor="@color/black" />
 
-        <Button
+        <ToggleButton
             android:id="@+id/startfastestpathbutton"
             android:layout_width="wrap_content"
             android:layout_height="30dp"
@@ -327,7 +328,6 @@
             android:layout_height="wrap_content"
             android:layout_toRightOf="@id/robotstatus"
             android:checked="true"
-            android:onClick="toggleAutoMode"
             android:textOff="MANUAL"
             android:textOn="AUTO"
             android:textSize="12sp" />
