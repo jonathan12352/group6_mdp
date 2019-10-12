@@ -398,45 +398,13 @@ public class MainActivity extends AppCompatActivity {
             Log.i(TAG, "messageReceiver() Message Received: " + message);
 
             try {
-                //if (message.length() > 7 && message.substring(2,6).equals("grid")) {
                 if(message.contains("EXPLORE")){
-                    String obstacleString = "";
                     String[] getInformationString = message.split(Pattern.quote("|"));
 
-                    for(String s : getInformationString){
-                        Log.i(TAG, "getInformationString: " + s);
-                    }
-
-                    //String obstacleHexString = message.substring(11,message.length()-2);
                     String obstacleHexString = getInformationString[2].replace(" ", "");
                     Log.i(TAG, "obstacleHexString Received: " + obstacleHexString);
 
-                    /*BigInteger hexBigIntegerExplored = new BigInteger(obstacleHexString, 16);
-                    String obstacleBinaryString = hexBigIntegerExplored.toString(2);
-
-                    while (obstacleBinaryString.length() < 300)
-                        obstacleBinaryString = "0" + obstacleBinaryString;
-
-                    Log.i(TAG, "ObstacleBinaryString: " + obstacleBinaryString);
-
-                    for (int i = 0; i< obstacleBinaryString.length(); i=i+15) {
-
-                        int j=0;
-                        String subString = "";
-
-                        while (j<15) {
-                            subString = subString + obstacleBinaryString.charAt((j++)+i);
-                        }
-                        obstacleString = subString + obstacleString;
-                    }
-
-                    hexBigIntegerExplored = new BigInteger(obstacleString, 2);
-                    obstacleString = hexBigIntegerExplored.toString(16);*/
-
                     JSONObject amdObject = new JSONObject();
-                    //amdObject.put("explored", "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-                    /*amdObject.put("length", obstacleHexString.length()*4);
-                    amdObject.put("obstacle", obstacleString);*/
                     amdObject.put("explored", getInformationString[1].replace(" ", ""));
                     amdObject.put("length",  obstacleHexString.length()*4);
                     amdObject.put("obstacle", obstacleHexString);
@@ -450,6 +418,15 @@ public class MainActivity extends AppCompatActivity {
                     amdMessage.put("map", amdArray);
                     message = String.valueOf(amdMessage);
                 }
+                else if(message.contains("FASTEST")){
+                    String[] getInformationString = message.split(Pattern.quote("|"));
+                    //int x_pos = ;
+                    //int y_pos = ;
+                    //String direction = ;
+                    //Over here extract x_pos, y_pos and direction information from the String and pass it to the function below
+                    //map.robotMessageForUpdateMapInformation(x_pos, y_pos, direction);
+                    return;
+                }
             } catch (JSONException e) {
                 Log.d(TAG, "Error Processing Received Message: " + e.getMessage());
             }
@@ -458,19 +435,15 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
+            try {
+                map.setReceivedJsonObject(new JSONObject(message));
 
-                try {
-                    Log.d(TAG, "receivedMessage updateMapInformation: " + message);
+                if (map.getAutoUpdate())
+                    map.updateMapInformation();
 
-                    map.setReceivedJsonObject(new JSONObject(message));
-
-                    if (map.getAutoUpdate())
-                        map.updateMapInformation();
-
-                    Log.i(TAG, "messageReceiver: message decode successful");
-                } catch (JSONException e) {
-                    Log.i(TAG, "messageReceiver: message decode unsuccessful: " + e.getMessage());
-                }
+            } catch (JSONException e) {
+                Log.i(TAG, "messageReceiver: message decode unsuccessful: " + e.getMessage());
+            }
 
             InitializeSharedPreferences();
             String receivedText = String.format("%s\n%s", sharedPreferences.getString("receivedText", ""), message);

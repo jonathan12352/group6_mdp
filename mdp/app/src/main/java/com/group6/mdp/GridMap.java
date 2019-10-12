@@ -691,6 +691,25 @@ public class GridMap extends View {
             postInvalidateDelayed(500);
     }
 
+    //This method sets the JSONObject used by updateMapInformation()
+    // to the initializing robot position JSONObject and runs updateMapInformation()
+    public void robotMessageForUpdateMapInformation(int x_pos, int y_pos, String direction)throws  JSONException{
+        JSONObject sendObject = new JSONObject();
+        JSONObject moveRobot = new JSONObject();
+        JSONArray  arr = new JSONArray();
+
+        moveRobot.put("x", x_pos+1);
+        moveRobot.put("y", y_pos+1);
+        moveRobot.put("direction", direction);
+        moveRobot.put("move", true);
+
+        arr.put(moveRobot);
+        sendObject.put("robot", arr);
+
+        setReceivedJsonObject(sendObject);
+        updateMapInformation();
+    }
+
     public void updateMapInformation() throws JSONException {
 
         printLog("Start of updateMapInformation()");
@@ -775,20 +794,7 @@ public class GridMap extends View {
                     int x_pos = Integer.parseInt(coordinate[1].trim());
                     int y_pos =  Integer.parseInt(coordinate[0].trim());
 
-                    JSONObject sendObject = new JSONObject();
-                    JSONObject moveRobot = new JSONObject();
-                    JSONArray  arr = new JSONArray();
-
-                    moveRobot.put("x", x_pos+1);
-                    moveRobot.put("y", y_pos+1);
-                    moveRobot.put("direction", direction);
-                    moveRobot.put("move", true);
-
-                    arr.put(moveRobot);
-                    sendObject.put("robot", arr);
-
-                    setReceivedJsonObject(sendObject);
-                    updateMapInformation();
+                    robotMessageForUpdateMapInformation(x_pos, y_pos, direction);
 
                     break;
                 case "robot":
