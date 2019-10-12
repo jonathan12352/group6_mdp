@@ -1140,9 +1140,6 @@ public class GridMap extends View {
         editor.putString("direction", "None");
         editor.commit();
 
-        //if (modeToggleBtn.isChecked())
-            //modeToggleBtn.toggle();
-
         receivedJsonObject = null;
         backupMapInformation = null;
 

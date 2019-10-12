@@ -525,15 +525,12 @@ public class MainActivity extends AppCompatActivity {
     public static void sendMessage(String name, int x, int y) throws JSONException {
         InitializeSharedPreferences();
 
-        //JSONObject jsonObject = new JSONObject();
         String message;
 
         switch(name) {
             case "starting":
             case "waypoint":
-                //jsonObject.put(name, name);
-                //jsonObject.put("x", x);
-                //jsonObject.put("y", y);
+
                 message = String.format("%s (%d, %d)", name, x, y);
                 break;
             default:
@@ -686,8 +683,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void manualUpdateMap(View view){
         if(!modeToggleButton.isChecked() && map!=null){
-            sendMessage("sendArena");
-
             try{
                 map.updateMapInformation();
             }
