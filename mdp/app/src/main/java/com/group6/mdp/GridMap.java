@@ -309,6 +309,7 @@ public class GridMap extends View {
         GridMap.obstacleCoord.add(obstacleCoord);
         row = this.convertRow(row);
         cells[col][row].setType("obstacle");
+        printLog("Obstacle Coordinate set at x: " + col + " row: " + row);
         printLog("Exiting setObstacleCoord");
     }
 
@@ -691,11 +692,14 @@ public class GridMap extends View {
     }
 
     public void updateMapInformation() throws JSONException {
+
         printLog("Start of updateMapInformation()");
         JSONObject mapInformation = this.getReceivedJsonObject();
-        printLog("updateMapInformation mapInformation: " + mapInformation);
+        printLog("updateMapInformation() mapInformation: " + mapInformation);
+
         JSONArray infoJsonArray;
         JSONObject infoJsonObject;
+
         String hexStringExplored, hexStringObstacle, exploredString, obstacleString;
         BigInteger hexBigIntegerExplored, hexBigIntegerObstacle;
         String message;
@@ -704,7 +708,7 @@ public class GridMap extends View {
             return;
 
         for(int i=0; i<mapInformation.names().length(); i++) {
-            message = "Default Message For updateMapInformation()";
+            message = "Print default message for updateMapInformation()";
             switch (mapInformation.names().getString(i)) {
                 case "map":
                     infoJsonArray = mapInformation.getJSONArray("map");
@@ -713,18 +717,19 @@ public class GridMap extends View {
 
                     hexBigIntegerExplored = new BigInteger(hexStringExplored, 16);
                     exploredString = hexBigIntegerExplored.toString(2);
+                    exploredString = exploredString.substring(2, exploredString.length()-2);
 
                     printLog("updateMapInformation exploredString: " + exploredString);
 
                     int x, y;
 
-                    for (int j=0; j<exploredString.length()-4; j++) {
+                    for (int j=0; j<exploredString.length(); j++) {
                         y = 19 - (j/15);
                         x = 1 + j - ((19-y)*15);
 
-                        if ((String.valueOf(exploredString.charAt(j+2))).equals("1") && !cells[x][y].type.equals("robot"))
+                        if ((String.valueOf(exploredString.charAt(j))).equals("1") && !cells[x][y].type.equals("robot"))
                             cells[x][y].setType("explored");
-                        else if ((String.valueOf(exploredString.charAt(j+2))).equals("0") && !cells[x][y].type.equals("robot"))
+                        else if ((String.valueOf(exploredString.charAt(j))).equals("0") && !cells[x][y].type.equals("robot"))
                             cells[x][y].setType("unexplored");
                     }
 
@@ -744,17 +749,47 @@ public class GridMap extends View {
                     printLog("updateMapInformation obstacleString: " + obstacleString);
 
                     int k = 0;
-                    for (int row = ROW-1; row >= 0; row--)
-                        for (int col = 1; col <= COL; col++)
+                    for (int row = ROW-1; row >= 0; row--){
+                        for (int col = 1; col <= COL; col++){
                             if ((cells[col][row].type.equals("explored")||(cells[col][row].type.equals("robot"))) && k < obstacleString.length()) {
-                                if ((String.valueOf(obstacleString.charAt(k))).equals("1"))
+
+                                String charAt = String.valueOf(obstacleString.charAt(k));
+                                Log.i(TAG, String.format("k at: %s charAt:%s row: %s col: %s ", k, charAt, row, col));
+
+                                if (charAt.equals("1"))
                                     setObstacleCoord(col, 20 - row);
-                                k++;
                             }
+                            k++;
+                        }
+
+                    }
+
 
                     int[] waypointCoord = this.getWaypointCoord();
                     if (waypointCoord[0] >= 1 && waypointCoord[1] >= 1)
                         cells[waypointCoord[0]][20-waypointCoord[1]].setType("waypoint");
+
+                    String[] coordinate = infoJsonObject.getString("coordinate").replace("[", "").replace("]", "").split(",");
+                    String direction = infoJsonObject.getString("direction").toLowerCase();
+
+                    int x_pos = Integer.parseInt(coordinate[1].trim());
+                    int y_pos =  Integer.parseInt(coordinate[0].trim());
+
+                    JSONObject sendObject = new JSONObject();
+                    JSONObject moveRobot = new JSONObject();
+                    JSONArray  arr = new JSONArray();
+
+                    moveRobot.put("x", x_pos+1);
+                    moveRobot.put("y", y_pos+1);
+                    moveRobot.put("direction", direction);
+                    moveRobot.put("move", true);
+
+                    arr.put(moveRobot);
+                    sendObject.put("robot", arr);
+
+                    setReceivedJsonObject(sendObject);
+                    updateMapInformation();
+
                     break;
                 case "robot":
                     if (canDrawRobot)
@@ -762,12 +797,16 @@ public class GridMap extends View {
                     infoJsonArray = mapInformation.getJSONArray("robot");
                     infoJsonObject = infoJsonArray.getJSONObject(0);
 
-                    for (int row = ROW-1; row >= 0; row--)
-                        for (int col = 1; col <= COL; col++)
-                            cells[col][row].setType("unexplored");
+                    if(!infoJsonObject.has("move")){
+                        for (int row = ROW-1; row >= 0; row--){
+                            for (int col = 1; col <= COL; col++){
+                                cells[col][row].setType("unexplored");
+                            }
+                        }
+                        setEndCoord(14, 19);
+                        setStartCoord(infoJsonObject.getInt("x"), infoJsonObject.getInt("y"));
+                    }
 
-                    setEndCoord(14, 19);
-                    setStartCoord(infoJsonObject.getInt("x"), infoJsonObject.getInt("y"));
                     setCurCoord(infoJsonObject.getInt("x"), infoJsonObject.getInt("y"), infoJsonObject.getString("direction"));
                     canDrawRobot = true;
                     break;

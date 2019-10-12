@@ -84,8 +84,9 @@ public class MessageBoxActivity extends AppCompatActivity {
 
                 sharedPreferences = getSharedPreferences("Shared Preferences", Context.MODE_PRIVATE);
                 SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putString("sentText", sentText);
+                editor.putString("sentText", String.format("%s\n%s", sharedPreferences.getString("sentText", ""), sentText));
                 editor.commit();
+
                 messageSentTextView.setText(sharedPreferences.getString("sentText", ""));
                 typeTextEditView.setText(" ");
 

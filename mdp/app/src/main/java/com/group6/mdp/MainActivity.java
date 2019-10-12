@@ -6,7 +6,6 @@ import android.app.FragmentManager;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -32,7 +31,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.math.BigInteger;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Locale;
@@ -402,51 +400,55 @@ public class MainActivity extends AppCompatActivity {
             try {
                 //if (message.length() > 7 && message.substring(2,6).equals("grid")) {
                 if(message.contains("EXPLORE")){
-                    String resultString = "";
+                    String obstacleString = "";
                     String[] getInformationString = message.split(Pattern.quote("|"));
 
                     for(String s : getInformationString){
                         Log.i(TAG, "getInformationString: " + s);
                     }
 
-                    //String amdString = message.substring(11,message.length()-2);
-                    String amdString = getInformationString[2];
-                    Log.i(TAG, "amdString Received: " + amdString);
+                    //String obstacleHexString = message.substring(11,message.length()-2);
+                    String obstacleHexString = getInformationString[2].replace(" ", "");
+                    Log.i(TAG, "obstacleHexString Received: " + obstacleHexString);
 
-                    BigInteger hexBigIntegerExplored = new BigInteger(amdString, 16);
-                    String exploredString = hexBigIntegerExplored.toString(2);
+                    /*BigInteger hexBigIntegerExplored = new BigInteger(obstacleHexString, 16);
+                    String obstacleBinaryString = hexBigIntegerExplored.toString(2);
 
-                    Log.i(TAG, "exploredString: " + exploredString);
+                    while (obstacleBinaryString.length() < 300)
+                        obstacleBinaryString = "0" + obstacleBinaryString;
 
-                    while (exploredString.length() < 300)
-                        exploredString = "0" + exploredString;
+                    Log.i(TAG, "ObstacleBinaryString: " + obstacleBinaryString);
 
-                    for (int i=0; i<exploredString.length(); i=i+15) {
+                    for (int i = 0; i< obstacleBinaryString.length(); i=i+15) {
+
                         int j=0;
                         String subString = "";
+
                         while (j<15) {
-                            Log.i(TAG, "Substring Index: " + (j+i));
-                            subString = subString + exploredString.charAt(j+i);
-                            j++;
+                            subString = subString + obstacleBinaryString.charAt((j++)+i);
                         }
-                        resultString = subString + resultString;
+                        obstacleString = subString + obstacleString;
                     }
-                    hexBigIntegerExplored = new BigInteger(resultString, 2);
-                    resultString = hexBigIntegerExplored.toString(16);
+
+                    hexBigIntegerExplored = new BigInteger(obstacleString, 2);
+                    obstacleString = hexBigIntegerExplored.toString(16);*/
 
                     JSONObject amdObject = new JSONObject();
                     //amdObject.put("explored", "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-                    /*amdObject.put("length", amdString.length()*4);
-                    amdObject.put("obstacle", resultString);*/
-                    amdObject.put("explored", getInformationString[1]);
-                    amdObject.put("length",  getInformationString[2].length());
-                    amdObject.put("obstacle", getInformationString[2]);
+                    /*amdObject.put("length", obstacleHexString.length()*4);
+                    amdObject.put("obstacle", obstacleString);*/
+                    amdObject.put("explored", getInformationString[1].replace(" ", ""));
+                    amdObject.put("length",  obstacleHexString.length()*4);
+                    amdObject.put("obstacle", obstacleHexString);
+
+                    amdObject.put("direction", getInformationString[4]);
+                    amdObject.put("coordinate", getInformationString[3]);
+
                     JSONArray amdArray = new JSONArray();
                     amdArray.put(amdObject);
                     JSONObject amdMessage = new JSONObject();
                     amdMessage.put("map", amdArray);
                     message = String.valueOf(amdMessage);
-                    Log.i(TAG, "Executed for AMD message, message: " + message);
                 }
             } catch (JSONException e) {
                 Log.d(TAG, "Error Processing Received Message: " + e.getMessage());
