@@ -128,7 +128,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="2.5dp"
             android:layout_toRightOf="@+id/exploretimeword"
-            android:text="00:00:00"
+            android:text="00:00"
             android:textColor="@color/black" />
 
         <ToggleButton
@@ -167,7 +167,7 @@
             android:layout_below="@+id/exploretime"
             android:layout_margin="2.5dp"
             android:layout_toRightOf="@+id/fastestpathword"
-            android:text="00:00:00"
+            android:text="00:00"
             android:textColor="@color/black" />
 
         <ToggleButton
@@ -225,7 +225,7 @@
             android:layout_alignParentLeft="true"
             android:layout_margin="2dp"
             android:background="@drawable/basic_ui_border"
-            android:text="NA"
+            android:text="Stopped"
             android:textAlignment="center"
             android:textColor="@color/black" />
 

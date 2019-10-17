@@ -30,7 +30,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Locale;
@@ -57,15 +56,16 @@ public class MainActivity extends AppCompatActivity {
     TextView robot_xpos;
     TextView robot_ypos;
 
-    TextView exploreTime;
-    TextView fastestPathTime;
+    static TextView exploreTime;
+    static TextView fastestPathTime;
 
     ToggleButton modeToggleButton;
     ToggleButton setRobotStartPointToggleButton;
     ToggleButton setWaypointToggleButton;
     ToggleButton setObstacleToggleButton;
-    ToggleButton startExploreButton;
-    ToggleButton startFastestPathButton;
+
+    public static ToggleButton startExploreButton;
+    public static ToggleButton startFastestPathButton;
 
     Button explorationResetButton;
     Button fastestPathResetButton;
@@ -86,13 +86,9 @@ public class MainActivity extends AppCompatActivity {
 
     GridMap map;
 
-    boolean autoUpdate = true;
-
-    boolean manuallyUpdateMap = false;
-
     static BluetoothConnectionHandler BTConnectHandler;
 
-    Handler messageRefreshTimerHandler = new Handler();
+    public static Handler messageRefreshTimerHandler = new Handler();
 
     public static long fastestTime = 0;
     public static long explorationTime = 0;
@@ -104,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
             messageRefreshTimerHandler.postDelayed(refreshMessageSentReceived, 1000);
         }};
 
-    Runnable fastestPathTimer = new Runnable(){
+    public static Runnable fastestPathTimer = new Runnable(){
         @Override
         public void run() {
             long millis = System.currentTimeMillis() - fastestTime;
@@ -112,11 +108,13 @@ public class MainActivity extends AppCompatActivity {
             int minutes = seconds / 60;
             seconds = seconds % 60;
 
-            fastestPathTime.setText(String.format("%02d:%02d", minutes, seconds));
+            MainActivity.fastestPathTime.setText(String.format("%02d:%02d", minutes, seconds));
+
+            messageRefreshTimerHandler.postDelayed(this, 500);
         }
     };
 
-    Runnable explorationTimer = new Runnable(){
+    public static Runnable explorationTimer = new Runnable(){
         @Override
         public void run() {
             long millis = System.currentTimeMillis() - explorationTime;
@@ -124,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
             int minutes = seconds / 60;
             seconds = seconds % 60;
 
-            exploreTime.setText(String.format("%02d:%02d", minutes, seconds));
+            MainActivity.exploreTime.setText(String.format("%02d:%02d", minutes, seconds));
 
             messageRefreshTimerHandler.postDelayed(this, 500);
         }
@@ -312,9 +310,8 @@ public class MainActivity extends AppCompatActivity {
                     explorationTime = System.currentTimeMillis();
                     messageRefreshTimerHandler.postDelayed(explorationTimer, 0);
                 }
-                else{
+                else
                     messageRefreshTimerHandler.removeCallbacks(explorationTimer);
-                }
             }
         });
 
@@ -326,9 +323,8 @@ public class MainActivity extends AppCompatActivity {
                     fastestTime = System.currentTimeMillis();
                     messageRefreshTimerHandler.postDelayed(fastestPathTimer, 0);
                 }
-                else{
+                else
                     messageRefreshTimerHandler.removeCallbacks(fastestPathTimer);
-                }
             }
         });
 
@@ -339,20 +335,18 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view){
                 Utils.showToast(MainActivity.this, "Reseting exploration time...");
-                exploreTime.setText("00:00:00");
+                exploreTime.setText("00:00");
                 if(startExploreButton.isChecked())
                     startExploreButton.toggle();
                 messageRefreshTimerHandler.removeCallbacks(explorationTimer);
             }
         });
 
-        //WAYPOINT|X|Y
-
         fastestPathResetButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
                 Utils.showToast(MainActivity.this,"Reseting fastest time...");
-                fastestPathTime.setText("00:00:00");
+                fastestPathTime.setText("00:00");
                 if (startFastestPathButton.isChecked())
                     startFastestPathButton.toggle();
                 messageRefreshTimerHandler.removeCallbacks(fastestPathTimer);
@@ -412,6 +406,10 @@ public class MainActivity extends AppCompatActivity {
                     amdObject.put("direction", getInformationString[4]);
                     amdObject.put("coordinate", getInformationString[3]);
 
+                    if(getInformationString.length==6){
+                        amdObject.put("explore_map_descriptor2", getInformationString[5]);
+                    }
+
                     JSONArray amdArray = new JSONArray();
                     amdArray.put(amdObject);
                     JSONObject amdMessage = new JSONObject();
@@ -420,11 +418,12 @@ public class MainActivity extends AppCompatActivity {
                 }
                 else if(message.contains("FASTEST")){
                     String[] getInformationString = message.split(Pattern.quote("|"));
+                    Log.i(TAG, "Log FASTEST PATH MESSAGE: " + message);
                     //int x_pos = ;
                     //int y_pos = ;
                     //String direction = ;
                     //Over here extract x_pos, y_pos and direction information from the String and pass it to the function below
-                    //map.robotMessageForUpdateMapInformation(x_pos, y_pos, direction);
+                    //map.robotMoveMessageForUpdateMapInformation(x_pos, y_pos, direction);
                     return;
                 }
             } catch (JSONException e) {
@@ -518,10 +517,6 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "Exiting receiveMessage");
     }
 
-    public void toggleAutoMode(View view){
-        setRobotModeBehavior();
-    }
-
     public static void sendMessage(String name, int x, int y) throws JSONException {
         InitializeSharedPreferences();
 
@@ -551,30 +546,26 @@ public class MainActivity extends AppCompatActivity {
             //Initiate AUTO Behavior
             try {
                 map.setAutoUpdate(true);
-                autoUpdate = true;
+                Utils.showToast(MainActivity.this, "AUTO MODE");
             } catch (JSONException e) {
                 e.printStackTrace();
             }
 
-            Utils.showToast(MainActivity.this, "AUTO MODE");
         }
         else{
             //Initiate Manual Behavior
             try {
                 map.setAutoUpdate(false);
-                autoUpdate = false;
+                Utils.showToast(MainActivity.this, "MANUAL MODE");
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            Utils.showToast(MainActivity.this, "MANUAL MODE");
-
         }
     }
 
     public void moveRobot(View view){
 
         if(!map.getAutoUpdate()){
-
             if(!map.getCanDrawRobot()){
                 Log.d(TAG, "Cannot Draw Robot");
                 return;
@@ -659,7 +650,6 @@ public class MainActivity extends AppCompatActivity {
                 editor.putString("connStatus", "Disconnected");
                 btConnectStatus = findViewById(R.id.bluetoothstatus);
                 btConnectStatus.setText("Disconnected");
-
             }
             editor.commit();
         }

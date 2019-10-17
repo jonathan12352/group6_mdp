@@ -295,7 +295,7 @@ public class GridMap extends View {
         row = this.convertRow(row);
         cells[col][row].setType("waypoint");
 
-        MainActivity.sendMessage("waypoint", waypointCoord[0], waypointCoord[1]);
+        MainActivity.sendMessage("waypoint", waypointCoord[1]-1, waypointCoord[0]-1);
         printLog("Exiting setWaypointCoord");
     }
 
@@ -309,7 +309,7 @@ public class GridMap extends View {
         GridMap.obstacleCoord.add(obstacleCoord);
         row = this.convertRow(row);
         cells[col][row].setType("obstacle");
-        printLog("Obstacle Coordinate set at x: " + col + " row: " + row);
+        //printLog("Obstacle Coordinate set at x: " + col + " row: " + row);
         printLog("Exiting setObstacleCoord");
     }
 
@@ -691,9 +691,11 @@ public class GridMap extends View {
             postInvalidateDelayed(500);
     }
 
-    //This method sets the JSONObject used by updateMapInformation()
-    // to the initializing robot position JSONObject and runs updateMapInformation()
-    public void robotMessageForUpdateMapInformation(int x_pos, int y_pos, String direction)throws  JSONException{
+    /* This method sets the JSONObject used by updateMapInformation().
+       to the initializing robot position JSONObject and runs updateMapInformation().
+       This is the current workaround in order to update the robot's current position on the map
+       since we can't use Move to move the robot. */
+    public void robotMoveMessageForUpdateMapInformation(int x_pos, int y_pos, String direction)throws  JSONException{
         JSONObject sendObject = new JSONObject();
         JSONObject moveRobot = new JSONObject();
         JSONArray  arr = new JSONArray();
@@ -705,6 +707,38 @@ public class GridMap extends View {
 
         arr.put(moveRobot);
         sendObject.put("robot", arr);
+
+        setReceivedJsonObject(sendObject);
+        updateMapInformation();
+    }
+
+    /* This method will be used to update the robot's movement status on the GUI */
+    public void robotStatusUpdateMessageForUpdateMapInformation(String status)throws JSONException{
+        JSONObject sendObject = new JSONObject();
+        JSONObject statusObject = new JSONObject();
+        JSONArray  arr = new JSONArray();
+
+        statusObject.put("status", status);
+        arr.put(statusObject);
+        sendObject.put("status", arr);
+
+        setReceivedJsonObject(sendObject);
+        updateMapInformation();
+    }
+
+    /* The plan is to use this method to render the image recognition number blocks onto the GridMap
+     * The details on how to use this method will depend on how the relevant information is eventually passed over to Android */
+    public void renderNumberBlockMessageForUpdateMapInformation(int x, int y, int index) throws JSONException{
+        JSONObject sendObject = new JSONObject();
+        JSONObject numberBlockInfo = new JSONObject();
+        JSONArray  arr = new JSONArray();
+
+        numberBlockInfo.put("x",x);
+        numberBlockInfo.put("y", y);
+        numberBlockInfo.put("index", index);
+
+        arr.put(numberBlockInfo);
+        sendObject.put("numberBlock", arr);
 
         setReceivedJsonObject(sendObject);
         updateMapInformation();
@@ -738,7 +772,7 @@ public class GridMap extends View {
                     exploredString = hexBigIntegerExplored.toString(2);
                     exploredString = exploredString.substring(2, exploredString.length()-2);
 
-                    printLog("updateMapInformation exploredString: " + exploredString);
+                    //printLog("updateMapInformation exploredString: " + exploredString);
 
                     int x, y;
 
@@ -755,17 +789,17 @@ public class GridMap extends View {
                     int length = infoJsonObject.getInt("length");
 
                     hexStringObstacle = infoJsonObject.getString("obstacle");
-                    printLog("updateMapInformation hexStringObstacle: " + hexStringObstacle);
+                    //printLog("updateMapInformation hexStringObstacle: " + hexStringObstacle);
 
                     hexBigIntegerObstacle = new BigInteger(hexStringObstacle, 16);
-                    printLog("updateMapInformation hexBigIntegerObstacle: " + hexBigIntegerObstacle);
+                    //printLog("updateMapInformation hexBigIntegerObstacle: " + hexBigIntegerObstacle);
 
                     obstacleString = hexBigIntegerObstacle.toString(2);
 
                     while (obstacleString.length() < length)
                         obstacleString = "0" + obstacleString;
 
-                    printLog("updateMapInformation obstacleString: " + obstacleString);
+                    //printLog("updateMapInformation obstacleString: " + obstacleString);
 
                     int k = 0;
                     for (int row = ROW-1; row >= 0; row--){
@@ -773,16 +807,14 @@ public class GridMap extends View {
                             if ((cells[col][row].type.equals("explored")||(cells[col][row].type.equals("robot"))) && k < obstacleString.length()) {
 
                                 String charAt = String.valueOf(obstacleString.charAt(k));
-                                Log.i(TAG, String.format("k at: %s charAt:%s row: %s col: %s ", k, charAt, row, col));
+                                //Log.i(TAG, String.format("k at: %s charAt:%s row: %s col: %s ", k, charAt, row, col));
 
                                 if (charAt.equals("1"))
                                     setObstacleCoord(col, 20 - row);
                             }
                             k++;
                         }
-
                     }
-
 
                     int[] waypointCoord = this.getWaypointCoord();
                     if (waypointCoord[0] >= 1 && waypointCoord[1] >= 1)
@@ -794,7 +826,22 @@ public class GridMap extends View {
                     int x_pos = Integer.parseInt(coordinate[1].trim());
                     int y_pos =  Integer.parseInt(coordinate[0].trim());
 
-                    robotMessageForUpdateMapInformation(x_pos, y_pos, direction);
+                    robotMoveMessageForUpdateMapInformation(x_pos, y_pos, direction);
+
+                    if(infoJsonObject.has("explore_map_descriptor2")){
+                        Log.i(TAG, "Logging explore_map_descriptor2: " + MainActivity.startExploreButton.isChecked());
+                        JSONObject sendResponse = new JSONObject();
+                        sendResponse.put("map_descriptor1", exploredString);
+                        sendResponse.put("map_descriptor2", infoJsonObject.getString("explore_map_descriptor2"));
+                        MainActivity.receiveMessage("Finished Exploration Information: " + sendResponse.toString());
+                        if(MainActivity.startExploreButton.isChecked()){
+                            MainActivity.startExploreButton.toggle();
+                            MainActivity.messageRefreshTimerHandler.removeCallbacks(MainActivity.explorationTimer);
+                            robotStatusUpdateMessageForUpdateMapInformation("Stopped");
+                        }
+                    }
+                    else
+                        robotStatusUpdateMessageForUpdateMapInformation("Moving");
 
                     break;
                 case "robot":
@@ -876,7 +923,7 @@ public class GridMap extends View {
                     break;
             }
 
-            if (!message.equals("updateMapInformation Default message"))
+            if (!message.equals("Print default message for updateMapInformation()"))
                 MainActivity.receiveMessage(message);
         }
         printLog("Exiting updateMapInformation");
@@ -1130,10 +1177,14 @@ public class GridMap extends View {
 
     public void resetMap() {
         printLog("Entering resetMap");
+
         TextView robotStatusTextView =  ((Activity)this.getContext()).findViewById(R.id.robotstatus);
         ToggleButton modeToggleBtn = ((Activity)this.getContext()).findViewById(R.id.modeToggleButton);
+
         updateRobotAxis(0, 0, "None");
+
         robotStatusTextView.setText("NA");
+
         sharedPreferences();
         editor.putString("receivedText", "");
         editor.putString("sentText", "");
@@ -1148,7 +1199,6 @@ public class GridMap extends View {
         oldCoord = new int[]{-1, -1};
 
         robotDirection = "None";
-        autoUpdate = false;
 
         arrowCoord = new ArrayList<>();
         obstacleCoord = new ArrayList<>();
