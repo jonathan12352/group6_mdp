@@ -32,6 +32,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -384,6 +385,29 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    private class Command{
+        private String move;
+        private int repeat;
+        public Command(String move, int repeat){
+            this.move = move;
+            this.repeat = repeat;
+        }
+    }
+
+    HashMap<String, Command> commandsMap= new HashMap<String, Command>(){{
+        put("W", new Command("forward",1));
+        put("Q", new Command("forward",2));
+        put("E", new Command("forward",3));
+        put("R", new Command("forward",4));
+        put("T", new Command("forward",5));
+        put("Y", new Command("forward",6));
+        put("U", new Command("forward",7));
+        put("I", new Command("forward",8));
+        put("O", new Command("forward",9));
+        put("A", new Command("left",1));
+        put("D", new Command("right",1));
+    }};
+
     BroadcastReceiver messageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -392,7 +416,7 @@ public class MainActivity extends AppCompatActivity {
             Log.i(TAG, "messageReceiver() Message Received: " + message);
 
             try {
-                if(message.contains("EXPLORE")){
+                if(message.contains("EXPLORE") || message.contains("DONE")){
                     String[] getInformationString = message.split(Pattern.quote("|"));
 
                     String obstacleHexString = getInformationString[2].replace(" ", "");
@@ -414,16 +438,22 @@ public class MainActivity extends AppCompatActivity {
                     amdArray.put(amdObject);
                     JSONObject amdMessage = new JSONObject();
                     amdMessage.put("map", amdArray);
+                    if(message.contains("DONE"))
+                        amdMessage.put("done", true);
                     message = String.valueOf(amdMessage);
                 }
                 else if(message.contains("FASTEST")){
                     String[] getInformationString = message.split(Pattern.quote("|"));
                     Log.i(TAG, "Log FASTEST PATH MESSAGE: " + message);
-                    //int x_pos = ;
-                    //int y_pos = ;
-                    //String direction = ;
-                    //Over here extract x_pos, y_pos and direction information from the String and pass it to the function below
-                    //map.robotMoveMessageForUpdateMapInformation(x_pos, y_pos, direction);
+                    String move = "";
+
+                    if(commandsMap.containsValue(move)){
+                        Command command = commandsMap.get(move);
+                        for(int i=0;i<command.repeat;i++){
+                            map.robotMoveMessageForUpdateMapInformation(command.move);
+                        }
+                    }
+
                     return;
                 }
             } catch (JSONException e) {
