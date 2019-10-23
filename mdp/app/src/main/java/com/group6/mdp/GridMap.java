@@ -48,8 +48,6 @@ public class GridMap extends View {
     private static ArrayList<String[]> arrowCoord = new ArrayList<>();
     private static ArrayList<int[]> obstacleCoord = new ArrayList<>();
 
-    private static HashMap<Integer, HashMap<Integer, Integer>> numberBlocksCoord = new HashMap<>();
-
     private static boolean autoUpdate = false;
     private static boolean mapDrawn = false;
     private static boolean canDrawRobot = false;
@@ -73,8 +71,6 @@ public class GridMap extends View {
     private Paint exploredColor = new Paint();
     private Paint arrowColor = new Paint();
     private Paint fastestPathColor = new Paint();
-    private Paint numberBlockColor = new Paint();
-    private Paint numberBlockTextColor = new Paint();
 
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
@@ -97,10 +93,6 @@ public class GridMap extends View {
         exploredColor.setColor(Color.WHITE);
         arrowColor.setColor(Color.BLACK);
         fastestPathColor.setColor(Color.MAGENTA);
-        numberBlockColor.setARGB(255,255,165,0);
-        numberBlockTextColor.setColor(Color.BLACK);
-        numberBlockTextColor.setTextAlign(Paint.Align.CENTER);
-        numberBlockTextColor.setTextSize(15);
     }
 
     private void init(@Nullable AttributeSet attrs) {
@@ -134,6 +126,10 @@ public class GridMap extends View {
 
         this.drawIndividualCell(canvas);
         this.drawGridNumber(canvas);
+
+        for(int i=0;i<numberblocks.size();i++){
+            numberblocks.get(i).PaintNumberBlock(canvas);
+        }
 
         if (this.getCanDrawRobot())
             this.drawRobot(canvas, curCoord);
@@ -317,32 +313,6 @@ public class GridMap extends View {
         return obstacleCoord;
     }
 
-    private void setNumberBlockCoord(int col, int row, int index){
-        printLog("Entering setNumberBlockCoord");
-        row = this.convertRow(row);
-        HashMap<Integer, Integer> hashmap =  new HashMap<>();
-
-        if(GridMap.numberBlocksCoord.containsKey(col)){
-            hashmap = GridMap.numberBlocksCoord.get(col);
-
-            if(GridMap.numberBlocksCoord.get(col).containsKey(row))
-                hashmap.replace(row, index);
-            else
-                hashmap.put(row, index);
-        }
-        else
-            hashmap.put(row, index);
-
-
-        GridMap.numberBlocksCoord.put(col,hashmap);
-        cells[col][row].setType("numberBlock");
-        printLog("Exiting setNumberBlockCoord");
-    }
-
-    private HashMap<Integer, HashMap<Integer, Integer>> getNumberBlockCoord(){
-        return numberBlocksCoord;
-    }
-
     public void moveRobot(String direction) {
         printLog("Entering moveRobot");
         setValidPosition(false);
@@ -524,18 +494,6 @@ public class GridMap extends View {
                 for (int i = 0; i < this.getArrowCoord().size(); i++){
                     canvas.drawRect(cells[x][y].startX, cells[x][y].startY, cells[x][y].endX, cells[x][y].endY, cells[x][y].paint);
                 }
-                if(cells[x][y].type.equals("numberBlock")){
-                    try{
-                        int result = numberBlocksCoord.get(x).get(y).intValue();
-                        Log.d(TAG, "numberBlocks: " + numberBlocksCoord.toString());
-                        float x_pos = cells[x][y].startX + (cellSize / 2);
-                        float y_pos = cells[x][y].startY + cellSize / 1.5f;
-                        canvas.drawText(String.format("%d", result), x_pos, y_pos, numberBlockTextColor);
-                    }
-                    catch(NullPointerException e){
-                        Log.e(TAG, "Error writing text to cell: " + e.getMessage());
-                    }
-                }
             }
 
         printLog("Exiting drawIndividualCell");
@@ -620,6 +578,79 @@ public class GridMap extends View {
         }
     }
 
+    private static ArrayList<NumberBlock> numberblocks = new ArrayList<>();
+
+    /* Helper method that checks if the numberblocks arraylist contains a numberblock
+       with the specified index, if it does, return the index position of the
+       first occurence within the arraylist, else return -1 */
+    public static int NumberBlockExistAtIndex(int index){
+        for(int i=0;i<numberblocks.size();i++){
+            if(numberblocks.get(i).getID() ==index)
+                return i;
+        }
+        return -1;
+    }
+
+    public static boolean RemoveNumberBlockAtIndex(int index){
+        if(index != -1 && numberblocks.size()>index){
+            numberblocks.remove(index);
+            return true;
+        }
+        return false;
+    }
+
+    /*Given the specified index value, return the number of times it exists within the ArrayList */
+    public static int GetNumberBlockIDOccurence(int index){
+        int count = 0;
+        for(int i=0;i<numberblocks.size();i++){
+            if(numberblocks.get(i).getID() == index)
+                count++;
+        }
+        return count;
+    }
+
+    private class NumberBlock{
+        int x,y;
+        int id;
+        private final Paint numberBlockColor;
+        private final Paint numberBlockTextColor;
+
+        public int getID(){
+            return id;
+        }
+
+        public int getX(){
+            return x;
+        }
+
+        public int getY(){
+            return y;
+        }
+
+        public NumberBlock(int x, int y, int id){
+            this.x = x;
+            this.y = y;
+            this.id = id;
+            this.numberBlockColor = new Paint();
+            this.numberBlockTextColor = new Paint();
+
+            this.numberBlockColor.setARGB(255,255,165,0);
+            this.numberBlockTextColor.setColor(Color.BLACK);
+            this.numberBlockTextColor.setTextAlign(Paint.Align.CENTER);
+            this.numberBlockTextColor.setTextSize(15);
+        }
+
+        public void PaintNumberBlock(Canvas canvas){
+
+            int row = convertRow(y);
+
+            canvas.drawRect(cells[x][row].startX, cells[x][row].startY, cells[x][row].endX, cells[x][row].endY, this.numberBlockColor);
+            float x_pos = cells[x][row].startX + (cellSize / 2);
+            float y_pos = cells[x][row].startY + cellSize / 1.5f;
+            canvas.drawText(String.format("%d", id), x_pos, y_pos, this.numberBlockTextColor);
+        }
+    }
+
     private class Cell {
         float startX, startY, endX, endY;
         Paint paint;
@@ -663,9 +694,6 @@ public class GridMap extends View {
                     break;
                 case "fastestPath":
                     this.paint = fastestPathColor;
-                    break;
-                case "numberBlock":
-                    this.paint = numberBlockColor;
                     break;
                 default:
                     printLog("setting default to: " + type);
@@ -749,10 +777,10 @@ public class GridMap extends View {
 
         numberBlockInfo.put("x",x);
         numberBlockInfo.put("y", y);
-        numberBlockInfo.put("index", index);
+        numberBlockInfo.put("ID", index);
 
         arr.put(numberBlockInfo);
-        sendObject.put("numberBlock", arr);
+        sendObject.put("Image", arr);
 
         setReceivedJsonObject(sendObject);
         updateMapInformation();
@@ -844,10 +872,13 @@ public class GridMap extends View {
 
                     if(infoJsonObject.has("explore_map_descriptor2")){
                         Log.i(TAG, "Logging explore_map_descriptor2: " + MainActivity.startExploreButton.isChecked());
+
                         JSONObject sendResponse = new JSONObject();
                         sendResponse.put("map_descriptor1", exploredString);
                         sendResponse.put("map_descriptor2", infoJsonObject.getString("explore_map_descriptor2"));
+
                         MainActivity.receiveMessage(sendResponse.toString());
+
                         if(mapInformation.has("done") && MainActivity.startExploreButton.isChecked()){
                             MainActivity.startExploreButton.toggle();
                             MainActivity.messageRefreshTimerHandler.removeCallbacks(MainActivity.explorationTimer);
@@ -916,19 +947,25 @@ public class GridMap extends View {
                     printRobotStatus(infoJsonObject.getString("status"));
                     message = "status: " + infoJsonObject.getString("status");
                     break;
-                case "numberBlock":
-                    infoJsonArray = mapInformation.getJSONArray("numberBlock");
+                case "Image":
+                    infoJsonArray = mapInformation.getJSONArray("Image");
                     infoJsonObject = infoJsonArray.getJSONObject(0);
                     int x_coord = infoJsonObject.getInt("x");
                     int y_coord = infoJsonObject.getInt("y");
-                    int index = infoJsonObject.getInt("index");
-                    if(index < 1 || index > 15){
+                    int id = infoJsonObject.getInt("ID");
+
+                    if(id < 1 || id > 15){
                         Utils.showToast(getContext(), "Invalid Index Input");
                         break;
                     }
 
-                    if(cells[x_coord][20 - y_coord].type == "obstacle" || cells[x_coord][20 - y_coord].type == "numberBlock")
-                        this.setNumberBlockCoord(x_coord, y_coord, infoJsonObject.getInt("index"));
+                    if(GetNumberBlockIDOccurence(id)>0){
+                        Log.e(TAG, String.format("Number Block %d already exists", id));
+                        return;
+                    }
+
+                    if(cells[x_coord][20 - y_coord].type == "obstacle")
+                        numberblocks.add(new NumberBlock(x_coord, y_coord, id));
                     else
                         Log.e(TAG, "Error: Specified Coordinates Does Not Belong To An Obstacle Block nor a Number Block");
                     break;
@@ -1213,7 +1250,8 @@ public class GridMap extends View {
 
         arrowCoord = new ArrayList<>();
         obstacleCoord = new ArrayList<>();
-        numberBlocksCoord.clear();
+
+        //numberBlocksCoord.clear();
 
         waypointCoord = new int[]{-1, -1};
         mapDrawn = false;
