@@ -443,9 +443,10 @@ public class MainActivity extends AppCompatActivity {
                     message = String.valueOf(amdMessage);
                 }
                 else if(message.contains("FASTEST")){
-                    String[] getInformationString = message.split(Pattern.quote("|"));
-                    Log.i(TAG, "Log FASTEST PATH MESSAGE: " + message);
-                    startUpdateFastestPathMovementThread(getInformationString[1]);
+                    //String[] getInformationString = message.split(Pattern.quote("|"));
+                    //Log.i(TAG, "Log FASTEST PATH MESSAGE: " + message);
+                    map.robotPositionChangeMessageForUpdateMapInformation(13,18, "up");
+                    //startUpdateFastestPathMovementThread(getInformationString[1]);
                     return;
                 }
             } catch (JSONException e) {

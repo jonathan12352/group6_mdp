@@ -617,6 +617,32 @@ public class GridMap extends View {
         return count;
     }
 
+    public static List<NumberBlock> CleanUpDuplicateInNumberBlockArrayList(){
+        for(int i=1;i<=15;i++){
+            while(GetNumberBlockIDOccurence(i)>1){
+                RemoveNumberBlockAtIndex(NumberBlockExistAtIndex((i)));
+            }
+        }
+        return numberblocks;
+    }
+
+    public static JSONArray getNumberBlocksArrayList(){
+
+        CleanUpDuplicateInNumberBlockArrayList();
+
+        JSONArray arr = new JSONArray();
+
+        for(int i=0;i<numberblocks.size();i++){
+            JSONArray image = new JSONArray();
+                image.put(numberblocks.get(i).id);
+                image.put(numberblocks.get(i).x);
+                image.put(numberblocks.get(i).y);
+                arr.put(image);
+        }
+
+        return arr;
+    }
+
     private class NumberBlock{
         int x,y;
         int id;
@@ -650,12 +676,17 @@ public class GridMap extends View {
 
         public void PaintNumberBlock(Canvas canvas){
 
-            int row = convertRow(y);
+            int x_coord = x+1;
+            int row = convertRow(y+1);
 
-            canvas.drawRect(cells[x][row].startX, cells[x][row].startY, cells[x][row].endX, cells[x][row].endY, this.numberBlockColor);
-            float x_pos = cells[x][row].startX + (cellSize / 2);
-            float y_pos = cells[x][row].startY + cellSize / 1.5f;
-            canvas.drawText(String.format("%d", id), x_pos, y_pos, this.numberBlockTextColor);
+            Log.e(TAG, String.format("PaintNumberBlock Coord: x:%d, y:%d, row:%d, ID:%d, cellType: %s", x, y, row, id, cells[x_coord][row].type));
+
+            //if(cells[x][row].type == "obstacle"){
+                canvas.drawRect(cells[x_coord][row].startX, cells[x_coord][row].startY, cells[x_coord][row].endX, cells[x_coord][row].endY, this.numberBlockColor);
+                float x_pos = cells[x_coord][row].startX + (cellSize / 2);
+                float y_pos = cells[x_coord][row].startY + cellSize / 1.5f;
+                canvas.drawText(String.format("%d", id), x_pos, y_pos, this.numberBlockTextColor);
+            //}
         }
     }
 
@@ -886,7 +917,7 @@ public class GridMap extends View {
                         sendResponse.put("map_descriptor2", infoJsonObject.getString("explore_map_descriptor2"));
 
                         if(numberblocks.size()>0)
-                            sendResponse.put("Image(s)", numberblocks.toString());
+                            sendResponse.put("Image(s)", getNumberBlocksArrayList());
 
                         MainActivity.receiveMessage(sendResponse.toString());
 
@@ -915,6 +946,8 @@ public class GridMap extends View {
                         setEndCoord(14, 19);
                         setStartCoord(infoJsonObject.getInt("x"), infoJsonObject.getInt("y"));
                     }
+
+                    Log.e(TAG, String.format("x:%s, y:%s",infoJsonObject.getInt("x"), infoJsonObject.getInt("y")));
 
                     setCurCoord(infoJsonObject.getInt("x"), infoJsonObject.getInt("y"), infoJsonObject.getString("direction"));
                     canDrawRobot = true;
@@ -975,15 +1008,13 @@ public class GridMap extends View {
                         return;
                     }
 
-                    if(x_coord<1 || x_coord>15 || y_coord<1 || y_coord>20){
+                    if(x_coord<0 || x_coord>14 || y_coord<0 || y_coord>19){
                         Log.e(TAG, String.format("Invalid Image Coordinates, x:%d, y:%d", x_coord, y_coord));
                         return;
                     }
 
-                    if(cells[x_coord][20 - y_coord].type == "obstacle")
-                        numberblocks.add(new NumberBlock(x_coord, y_coord, id));
-                    else
-                        Log.e(TAG, "Error: Specified Coordinates Does Not Belong To An Obstacle Block nor a Number Block");
+                    numberblocks.add(new NumberBlock(x_coord, y_coord, id));
+
                     break;
                 default:
                     message = "Unintended default for JSONObject";
@@ -1267,7 +1298,7 @@ public class GridMap extends View {
         arrowCoord = new ArrayList<>();
         obstacleCoord = new ArrayList<>();
 
-        //numberBlocksCoord.clear();
+        numberblocks.clear();
 
         waypointCoord = new int[]{-1, -1};
         mapDrawn = false;
