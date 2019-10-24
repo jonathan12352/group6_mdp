@@ -445,19 +445,12 @@ public class MainActivity extends AppCompatActivity {
                 else if(message.contains("FASTEST")){
                     String[] getInformationString = message.split(Pattern.quote("|"));
                     Log.i(TAG, "Log FASTEST PATH MESSAGE: " + message);
-                    String move = "";
-
-                    if(commandsMap.containsValue(move)){
-                        Command command = commandsMap.get(move);
-                        for(int i=0;i<command.repeat;i++){
-                            map.robotMoveMessageForUpdateMapInformation(command.move);
-                        }
-                    }
-
+                    startUpdateFastestPathMovementThread(getInformationString[1]);
                     return;
                 }
             } catch (JSONException e) {
                 Log.d(TAG, "Error Processing Received Message: " + e.getMessage());
+                return;
             }
             catch(NumberFormatException e){
                 Log.e(TAG, "Big Integer Format Exception: " + e.getMessage());
@@ -474,12 +467,52 @@ public class MainActivity extends AppCompatActivity {
                 Log.i(TAG, "messageReceiver: message decode unsuccessful: " + e.getMessage());
             }
 
-            InitializeSharedPreferences();
+            /* InitializeSharedPreferences();
             String receivedText = String.format("%s\n%s", sharedPreferences.getString("receivedText", ""), message);
             editor.putString("receivedText", receivedText);
-            editor.commit();
+            editor.commit(); */
         }
     };
+
+    void startUpdateFastestPathMovementThread(String commands) {
+        class OneTimeTask implements Runnable {
+
+            String commands;
+
+            OneTimeTask(String s) {
+                this.commands = commands;
+            }
+
+            public void run(){
+                try{
+                    map.robotMoveMessageForUpdateMapInformation("Moving");
+
+                    for(int i=0;i<commands.length();i++){
+                        if(commandsMap.containsValue(commands.charAt(i))){
+                            Command command = commandsMap.get(commands.charAt(i));
+                            for(int j=0;j<command.repeat;j++){
+                                map.robotMoveMessageForUpdateMapInformation(command.move);
+                                Thread.sleep(1000);
+                            }
+                        }
+                    }
+
+                    map.robotMoveMessageForUpdateMapInformation("Stopped");
+                }
+                catch(JSONException e){
+                    Log.e(TAG, "startUpdateFastestPathMovementThread JSONException Error: " + e);
+                    return;
+                }
+                catch(InterruptedException e){
+                    Log.e(TAG, "startUpdateFastestPathMovementThread InterruptedException Error: " + e);
+                    return;
+                }
+            }
+        }
+
+        Thread t = new Thread(new OneTimeTask(commands));
+        t.start();
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data){

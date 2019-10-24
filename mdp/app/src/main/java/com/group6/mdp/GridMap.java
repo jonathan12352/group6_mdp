@@ -879,11 +879,14 @@ public class GridMap extends View {
                     robotPositionChangeMessageForUpdateMapInformation(x_pos, y_pos, direction);
 
                     if(infoJsonObject.has("explore_map_descriptor2")){
-                        Log.i(TAG, "Logging explore_map_descriptor2: " + MainActivity.startExploreButton.isChecked());
+                        //Log.i(TAG, "Logging explore_map_descriptor2: " + MainActivity.startExploreButton.isChecked());
 
                         JSONObject sendResponse = new JSONObject();
                         sendResponse.put("map_descriptor1", exploredString);
                         sendResponse.put("map_descriptor2", infoJsonObject.getString("explore_map_descriptor2"));
+
+                        if(numberblocks.size()>0)
+                            sendResponse.put("Image(s)", numberblocks.toString());
 
                         MainActivity.receiveMessage(sendResponse.toString());
 
@@ -969,6 +972,11 @@ public class GridMap extends View {
 
                     if(GetNumberBlockIDOccurence(id)>0){
                         Log.e(TAG, String.format("Number Block %d already exists", id));
+                        return;
+                    }
+
+                    if(x_coord<1 || x_coord>15 || y_coord<1 || y_coord>20){
+                        Log.e(TAG, String.format("Invalid Image Coordinates, x:%d, y:%d", x_coord, y_coord));
                         return;
                     }
 
