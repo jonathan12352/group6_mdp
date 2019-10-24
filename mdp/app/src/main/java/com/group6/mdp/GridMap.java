@@ -285,6 +285,14 @@ public class GridMap extends View {
 
     private void setWaypointCoord(int col, int row) throws JSONException {
         printLog("Entering setWaypointCoord");
+
+        int[] currentWaypointCoord = getWaypointCoord();
+
+        if(currentWaypointCoord[0]!=-1 && currentWaypointCoord[1]!=-1) {
+            int resetrow = this.convertRow(currentWaypointCoord[1]);
+            cells[currentWaypointCoord[0]][resetrow].setType("explored");
+        }
+
         waypointCoord[0] = col;
         waypointCoord[1] = row;
 
