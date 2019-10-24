@@ -443,10 +443,9 @@ public class MainActivity extends AppCompatActivity {
                     message = String.valueOf(amdMessage);
                 }
                 else if(message.contains("FASTEST")){
-                    //String[] getInformationString = message.split(Pattern.quote("|"));
-                    //Log.i(TAG, "Log FASTEST PATH MESSAGE: " + message);
-                    map.robotPositionChangeMessageForUpdateMapInformation(13,18, "up");
-                    //startUpdateFastestPathMovementThread(getInformationString[1]);
+                    String[] getInformationString = message.split(Pattern.quote("|"));
+                    Log.i(TAG, "Log FASTEST PATH MESSAGE: " + message);
+                    startUpdateFastestPathMovementThread(getInformationString[1]);
                     return;
                 }
             } catch (JSONException e) {
@@ -475,34 +474,50 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    void startUpdateFastestPathMovementThread(String commands) {
+    void startUpdateFastestPathMovementThread(String input) {
         class OneTimeTask implements Runnable {
 
             String commands;
 
             OneTimeTask(String s) {
-                this.commands = commands;
+                this.commands = s;
             }
 
             public void run(){
                 try{
-                    map.robotMoveMessageForUpdateMapInformation("Moving");
+                    synchronized (this) {
+                        wait(500);
 
-                    for(int i=0;i<commands.length();i++){
-                        if(commandsMap.containsValue(commands.charAt(i))){
-                            Command command = commandsMap.get(commands.charAt(i));
-                            for(int j=0;j<command.repeat;j++){
-                                map.robotMoveMessageForUpdateMapInformation(command.move);
-                                Thread.sleep(1000);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try{
+                                    map.robotMoveMessageForUpdateMapInformation("Moving");
+
+                                    for(int i=0;i<commands.length();i++){
+                                        if(commandsMap.containsValue(commands.charAt(i))){
+                                            Command command = commandsMap.get(String.valueOf(commands.charAt(i)));
+                                            for(int j=0;j<command.repeat;j++){
+                                                map.robotMoveMessageForUpdateMapInformation(command.move);
+                                                Thread.sleep(1000);
+                                            }
+                                        }
+                                    }
+
+                                    map.robotMoveMessageForUpdateMapInformation("Stopped");
+                                }
+                                catch(JSONException e){
+                                    Log.e(TAG, "startUpdateFastestPathMovementThread JSONException Error: " + e);
+                                    return;
+                                }
+                                catch(InterruptedException e){
+                                    Log.e(TAG, "startUpdateFastestPathMovementThread InterruptedException Error: " + e);
+                                    return;
+                                }
                             }
-                        }
-                    }
+                        });
 
-                    map.robotMoveMessageForUpdateMapInformation("Stopped");
-                }
-                catch(JSONException e){
-                    Log.e(TAG, "startUpdateFastestPathMovementThread JSONException Error: " + e);
-                    return;
+                    }
                 }
                 catch(InterruptedException e){
                     Log.e(TAG, "startUpdateFastestPathMovementThread InterruptedException Error: " + e);
@@ -511,7 +526,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        Thread t = new Thread(new OneTimeTask(commands));
+        Thread t = new Thread(new OneTimeTask(input));
         t.start();
     }
 
@@ -748,4 +763,3 @@ public class MainActivity extends AppCompatActivity {
             Utils.showToast(MainActivity.this, "This Button Only Works in Manual Update Mode.");
     }
 }
-
